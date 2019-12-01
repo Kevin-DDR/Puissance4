@@ -27,6 +27,13 @@ typedef struct {
 	unsigned char** grille;
 } envoi_etat_t;
 
+typedef struct {
+	unsigned char type;//5
+	unsigned char idPartie;
+	unsigned char idJoueur;
+	unsigned char** grille;
+} coup_joue_t;
+
 
 typedef struct {
 	unsigned char type;

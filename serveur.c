@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   	char connexion_slave[sizeof(unsigned char)];
   	unsigned char bufferMsg[sizeof(unsigned char) * 500];
   	char adresse[16];
-  	unsigned char type,tmp;
+  	unsigned char type,tmp,idPartie,idJoueur;
   	unsigned short port;
 
   	if(argc != 3) {
@@ -128,8 +128,8 @@ int main(int argc, char *argv[]) {
 					//Création de la partie
 					tabParties[nbParties] = creerPartie();
 					//Stockage de l'adresse du client 1
-					tabParties[nbParties]->adresses[0] = adresseMaster;
-
+					//tabParties[nbParties]->adresses[0] = adresseMaster;
+					memcpy(&(tabParties[nbParties]->adresses[0]),&adresseMaster, sizeof(adresseMaster));
 					//type
 					tmp = 2;
 					memcpy(&bufferMsg,&tmp,sizeof(tmp));
@@ -155,7 +155,8 @@ int main(int argc, char *argv[]) {
 				}else{
 					//La partie comprend déjà un joueur
 					//Stockage de l'adresse du client 2
-					tabParties[nbParties]->adresses[1] = adresseMaster;
+					//tabParties[nbParties]->adresses[1] = adresseMaster;
+					memcpy(&(tabParties[nbParties]->adresses[1]),&adresseMaster, sizeof(adresseMaster));
 
 
 					//type
@@ -235,6 +236,59 @@ int main(int argc, char *argv[]) {
 
 			}
 			
+			break;
+
+			case 5:
+			//Reception de l'etat d'une partie apres un coup
+			//Recupération de l'idPartie
+			memcpy(&idPartie,&bufferMsg[sizeof(unsigned char)],sizeof(unsigned char));
+
+			//Recupération de l'idJoueur
+			memcpy(&idJoueur,&bufferMsg[sizeof(unsigned char) * 2],sizeof(unsigned char));		
+			
+			//Récupération de la grille
+			for(int i = 0; i< HAUTEUR; i++){
+				for(int j = 0; j < LONGUEUR; j++){
+					memcpy(&(tabParties[idPartie]->grille[i][j]),&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],sizeof(unsigned char));
+				}
+				
+			}
+			afficherGrille(tabParties[idPartie]->grille);
+
+			//Envoi de l'etat du jeu à l'autre joueur
+
+
+			memset(&bufferMsg, 0, sizeof(bufferMsg));
+
+
+			//type
+			type = 4;
+			memcpy(&bufferMsg,&type,sizeof(type));
+			//On copie le contenu de la grille ligne par ligne
+			for(int i = 0; i< HAUTEUR; i++){
+				for(int j = 0; j < LONGUEUR; j++){
+					memcpy(&bufferMsg[sizeof(unsigned char) + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&(tabParties[idPartie]->grille[i][j]),sizeof(unsigned char));
+				}
+				
+			}
+
+
+			
+
+			if(idJoueur == 1){
+				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0,(struct sockaddr*)&(tabParties[idPartie]->adresses[1]), adresseSlaveLen) ==-1 ){
+					perror("Erreur lors de l'envoi de la grille");
+			    	exit(EXIT_FAILURE);
+				}
+			}else{
+				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0,(struct sockaddr*)&(tabParties[idPartie]->adresses[0]), adresseSlaveLen) ==-1 ){
+					perror("Erreur lors de l'envoi de la grille");
+			    	exit(EXIT_FAILURE);
+				}
+			}
+
+
+
 			break;
 
 			//Reception d'un coup

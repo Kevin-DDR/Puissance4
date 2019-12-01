@@ -9,6 +9,7 @@
 #include <arpa/inet.h>   /* Pour sockaddr_in, inet_pton */
 #include <string.h>      /* Pour memset */
 #include <unistd.h>      /* Pour close */
+#include <signal.h>
 
 #define NB_LIGNES_SIM		40				/* Dimensions des fenetres du programme */
 #define NB_COL_SIM			80
@@ -37,6 +38,19 @@ void ncurses_initialiser() {
 
 void ncurses_stopper() {
 	endwin();
+}
+
+void handler(int signum) {
+
+	switch(signum){
+
+		case SIGINT:
+			printf("Interruption \n");
+			//TODO Envoyer une demande d'interruption au serveur
+			exit(0);
+		break;
+	}
+  
 }
 
 
@@ -230,7 +244,7 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 		//Ligne impossible
 		return 0;
 	}
-	for(int i = HAUTEUR -1; i > 0; i--){
+	for(int i = HAUTEUR -1; i >= 0; i--){
 		printf("%d %d\n", i,ligne);
 		
 		if((*grille)[i][ligne] == 0){
@@ -251,7 +265,8 @@ int main(int argc, char *argv[]){
 	//TODO Faire un handler pour les signaux
 	//TODO Faire un broadcast pour trouver l'adresse du serveur
 
-	unsigned char type,idPartie,idJoueur;
+	unsigned char type,idPartie,idJoueur,tmp;
+	idPartie = idJoueur = 0;
 	unsigned char** grille;
 	int sockfd;
   	struct sockaddr_in adresseServeur;
@@ -345,6 +360,20 @@ int main(int argc, char *argv[]){
 	}
 
 
+
+	struct sigaction action;
+	action.sa_handler = handler;
+	sigemptyset(&action.sa_mask);
+	action.sa_flags = 0;
+
+	if(sigaction(SIGINT, &action, NULL) == -1) {
+		perror("Erreur lors du positionnement ");
+		exit(EXIT_FAILURE);
+	}
+
+
+
+
 	while(1){
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
@@ -369,14 +398,48 @@ int main(int argc, char *argv[]){
 
 				afficherGrille(grille);
 				printf("-------------------------------------\n");
-				ajouterPiece(&grille, 3,1);
+				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
-				ajouterPiece(&grille, 3,1);
+				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
-				ajouterPiece(&grille, 3,1);
+				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
-				ajouterPiece(&grille, 3,1);
+				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
+
+
+				//Envoi du coup joué
+
+				memset(&bufferMsg, 0, sizeof(bufferMsg));
+				//type
+				tmp = 5;
+				memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+				//idPartie
+				tmp = idPartie;
+				memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+				//idJoueur
+				tmp = idJoueur;
+				memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+
+
+				//On copie le contenu de la grille ligne par ligne
+				for(int i = 0; i< HAUTEUR; i++){
+					for(int j = 0; j < LONGUEUR; j++){
+						memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+					}
+					
+				}
+
+				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+					perror("Erreur lors de l'envoi de l'etat de la partie ");
+			    	exit(EXIT_FAILURE);
+				}
+
+
+
 
 				//Reception de l'état de la partie
 
