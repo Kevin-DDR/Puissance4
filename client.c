@@ -103,13 +103,140 @@ void afficherGrille(unsigned char** grille){
 	}
 
 }
+
+
+int testerVictoire(unsigned char** gridTable,int rowNum,int colNum) {
+	//  For checking whether any win or lose condition is reached. Returns 1 if win or lose is reached. else returns 0
+	//  gridTable[][] is the game matrix(can be any number of rows and columns between 4 and 40)
+	//  colNum is the column number where the last token was placed
+	//  rowNum is the row number where the last token was placed
+	//  maxRow is the number of rows in my grid
+	//  maxCol is the number of columns in my grid
+	int maxCol = LONGUEUR;
+	int maxRow = HAUTEUR;
+	unsigned char player = gridTable[rowNum][colNum]; //player ID
+	int count=0;
+
+	// Horizontal check
+	for (int i=0;i<maxCol;i++){
+	    if (gridTable[rowNum][i]==player){
+	        count++;
+	    }else{
+	        count=0;
+	    }
+
+	    if (count>=4){
+	        return 1;
+	    }
+	}
+	//Vertical check
+	for (int i=0;i<maxRow;i++){
+	    if (gridTable[i][colNum]==player){
+	        count++;
+	    }else{
+	        count=0;
+	    }
+
+	    if (count>=4){
+	        return 1;
+	    }
+	} 
+	count=0;
+	// 4 in a row diagonally
+	for(int i=colNum+1,j=rowNum+1;i<maxRow && j<maxCol;i++,j++) 
+	{ 
+	    if(gridTable[j][i]!=player)
+	    {
+	        count=1;
+	        break;        
+	    }
+	    count++;
+	}
+	// 4 in a row diagonally
+	for(int i=colNum-1,j=rowNum-1;i>=0 && j>=0;i--,j--) 
+	{ 
+	    if(gridTable[j][i]!=player)
+	    {
+	        count=1;
+	        break;        
+	    }
+	    count++;
+	}
+	// 4 in a row diagonally
+	for(int i=colNum+1,j=rowNum-1;i<maxRow && j>=0;i++,j--) 
+	{ 
+	    if(gridTable[j][i]!=player)
+	    {
+	        count=1;
+	        break;        
+	    }
+	    count++;
+	}
+
+	for(int i=colNum-1,j=rowNum+1;i>=0 && j<maxCol;i--,j++) 
+	{ // 4 in a row diagonally
+	    if(gridTable[j][i]!=player)
+	    {
+	        count=1;
+	        break;        
+	    }
+	    count++;
+	}
+
+
+	// Diagonale Haut gauche jusqu'a bas droite
+for( int rowStart = 0; rowStart < maxRow - 4; rowStart++){
+    count = 0;
+    int row, col;
+    for( row = rowStart, col = 0; row < maxRow && col < maxCol; row++, col++ ){
+        if(gridTable[row][col] == player){
+            count++;
+            if(count >= 4) return 1;
+        }
+        else {
+            count = 0;
+        }
+    }
+}
+
+// Haut droit vers bas gauche
+for(int colStart = 1; colStart < maxCol - 4; colStart++){
+    count = 0;
+    int row, col;
+    for( row = 0, col = colStart; row < maxRow && col < maxCol; row++, col++ ){
+        if(gridTable[row][col] == player){
+            count++;
+            if(count >= 4) return 1;
+        }
+        else {
+            count = 0;
+        }
+    }
+}
+
+
+
+	if(count>=4)
+	    return 1;
+
+	return 0;
+}
+
+
+
 //Depot d'une piece dans la grille
 int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char joueur){
+	if(ligne >= LONGUEUR || ligne < 0){
+		//Ligne impossible
+		return 0;
+	}
 	for(int i = HAUTEUR -1; i > 0; i--){
 		printf("%d %d\n", i,ligne);
 		
 		if((*grille)[i][ligne] == 0){
 			(*grille)[i][ligne] = joueur;
+			//TODO tester si le joueur a gagné
+			printf("Victoire ? %d\n",testerVictoire(*grille, i, ligne));
 			return 1;
 		}
 		
@@ -242,6 +369,8 @@ int main(int argc, char *argv[]){
 
 				afficherGrille(grille);
 				printf("-------------------------------------\n");
+				ajouterPiece(&grille, 3,1);
+				afficherGrille(grille);
 				ajouterPiece(&grille, 3,1);
 				afficherGrille(grille);
 				ajouterPiece(&grille, 3,1);
