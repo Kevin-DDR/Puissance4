@@ -25,6 +25,8 @@
 WINDOW *fen_sim;							/* Fenetre de simulation partagee par les lems*/
 WINDOW *fen_msg;							/* Fenetre de messages partagee par les lems*/
 
+int running = 1;
+
 
 void ncurses_initialiser() {
 	initscr();								/* Demarre le mode ncurses */
@@ -46,7 +48,12 @@ void handler(int signum) {
 
 		case SIGINT:
 			printf("Interruption \n");
+			running = 0;
 			//TODO Envoyer une demande d'interruption au serveur
+
+
+
+
 			exit(0);
 		break;
 	}
@@ -239,10 +246,11 @@ for(int colStart = 1; colStart < maxCol - 4; colStart++){
 
 
 //Depot d'une piece dans la grille
+//Retourne -1 si le pion n'a pas pu etre joué, 0 si le joueur n'a pas gagné, 1 si il vient de gagner
 int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char joueur){
 	if(ligne >= LONGUEUR || ligne < 0){
 		//Ligne impossible
-		return 0;
+		return -1;
 	}
 	for(int i = HAUTEUR -1; i >= 0; i--){
 		printf("%d %d\n", i,ligne);
@@ -250,12 +258,12 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 		if((*grille)[i][ligne] == 0){
 			(*grille)[i][ligne] = joueur;
 			//TODO tester si le joueur a gagné
-			printf("Victoire ? %d\n",testerVictoire(*grille, i, ligne));
-			return 1;
+			return testerVictoire(*grille, i, ligne);
+			
 		}
 		
 	}
-	return 0;
+	return -1;
 	
 }
 
@@ -374,7 +382,7 @@ int main(int argc, char *argv[]){
 
 
 
-	while(1){
+	while(running == 1){
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
 			exit(EXIT_FAILURE);
@@ -457,9 +465,35 @@ int main(int argc, char *argv[]){
 
 	}
 
-	//Type 2 = connexion OK
-	//Type 3 == refus
 
+	//Selon le contenu de running, on determine la cause de la fin de la partie
+	switch(running){
+		//Control C donc envoi d'un message
+		case 0: 
+			//Envoi d'un message au serveur
+			//Type 3 == refus
+			memset(&bufferMsg, 0, sizeof(bufferMsg));
+			//type
+			tmp = 6;
+			memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+			//idPartie
+			tmp = idPartie;
+			memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+			//idJoueur
+			tmp = idJoueur;
+			memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+			if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+				perror("Erreur lors de l'envoi de l'etat de l'interruption ");
+		    	exit(EXIT_FAILURE);
+			}
+
+
+
+		break;
+	}
 
 	return 1;
 }

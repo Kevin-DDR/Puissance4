@@ -59,12 +59,9 @@ int main(int argc, char *argv[]) {
   	int full = 0;
 
 
-  	char connexion_master[sizeof(unsigned char)];
-  	char connexion_slave[sizeof(unsigned char)];
   	unsigned char bufferMsg[sizeof(unsigned char) * 500];
   	char adresse[16];
   	unsigned char type,tmp,idPartie,idJoueur;
-  	unsigned short port;
 
   	if(argc != 3) {
         fprintf(stderr, "Usage: %s portServeur nbParties\n", argv[0]);
@@ -314,41 +311,22 @@ int main(int argc, char *argv[]) {
 
 
 
-	if(recvfrom(sockfd, connexion_slave, sizeof(connexion_slave), 0, (struct sockaddr*)&adresseSlave, &adresseSlaveLen) == -1) {
-		perror("Erreur lors de la reception de la taille de la demande de connexion ");
-		exit(EXIT_FAILURE);
+	/* Fermeture du socket maitre */
+	if(close(sockfd) == -1) {
+    	perror("Erreur lors de la fermeture de la socket ");
+    	exit(EXIT_FAILURE);
 	}
-
-	memcpy(&type,&connexion_slave,sizeof(unsigned char));
-	printf("Type Slave: %u\n",type);
-
 	
 
 	return 1;
 
 	
 
-	inet_ntop(AF_INET, &(adresseMaster.sin_addr), adresse, INET_ADDRSTRLEN);
 	
-
-	memcpy(&port,&connexion_master[sizeof(unsigned char)],sizeof(unsigned short));
-	printf("Port : %hu \n",port);
-
-
-	/* Fermeture du socket maitre */
-	if(close(sockfd) == -1) {
-    	perror("Erreur lors de la fermeture de la socket ");
-    	exit(EXIT_FAILURE);
-	}
-
 
 
 	
 
-	if(type != 2){
-		perror("Erreur, le Slave doit etre lancé en second");
-		exit(EXIT_FAILURE);
-	}
 
 
 
