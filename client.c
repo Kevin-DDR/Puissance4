@@ -48,13 +48,8 @@ void handler(int signum) {
 
 		case SIGINT:
 			printf("Interruption \n");
-			running = 0;
+			running = 4;
 			//TODO Envoyer une demande d'interruption au serveur
-
-
-
-
-			exit(0);
 		break;
 	}
   
@@ -381,7 +376,13 @@ int main(int argc, char *argv[]){
 
 
 
-
+	/**
+	Running : 
+			2 = Victoire
+			3 = victoire de l'adversaire
+			4 = Interruption
+			5 = Interruption de l'adversaire
+	**/
 	while(running == 1){
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
@@ -459,7 +460,12 @@ int main(int argc, char *argv[]){
 
 				//TODO envoi de l'action
 
+				break;
 
+				//Interruption du programme par l'adversaire
+				case 6:
+					running = 5;
+				break;
 		}
 
 
