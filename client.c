@@ -11,10 +11,12 @@
 #include <unistd.h>      /* Pour close */
 #include <signal.h>
 
-#define NB_LIGNES_SIM		18				/* Dimensions des fenetres du programme */
-#define NB_COL_SIM			42
+#define NB_LIGNES_SIM		40				/* Dimensions des fenetres du programme */
+#define NB_COL_SIM			80
 #define NB_LIGNES_MSG		27
 #define NB_COL_MSG			49
+#define NB_LIGNES_OUTILS	6
+#define NB_COL_OUTILS		49
 
 #define HAUTEUR 6
 #define LONGUEUR 7
@@ -269,7 +271,6 @@ int main(int argc, char *argv[]){
 	unsigned char type,idPartie,idJoueur,tmp;
 	idPartie = idJoueur = 0;
 	unsigned char** grille;
-	int ch;
 	int sockfd;
   	struct sockaddr_in adresseServeur;
   	unsigned char connexion_master[sizeof(unsigned char)];
@@ -309,7 +310,6 @@ int main(int argc, char *argv[]){
 	int broadcastEnable=1;
 	setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
 	/*
-
 	// Creation de l'adresse du serveur 
 	memset(&adresseServeur, 0, sizeof(struct sockaddr_in));
 	adresseServeur.sin_family = AF_INET;
@@ -318,7 +318,6 @@ int main(int argc, char *argv[]){
 		perror("Erreur lors de la conversion de l'adresse ");
 		exit(EXIT_FAILURE);
 	}
-
 	// connexion_master_udp.port = atoi(argv[3]); 
 	type = 1;
 	memcpy(&connexion_master,&type,sizeof(type));
@@ -374,21 +373,6 @@ int main(int argc, char *argv[]){
 	}
 
 
-	//Lancement des visuels
-	WINDOW *fen_box_sim, *fen_box_msg;
-
-
-
-	ncurses_initialiser();
-	
-	fen_box_sim = creer_fenetre_box_sim();
-	fen_sim = creer_fenetre_sim();
-	fen_box_msg = creer_fenetre_box_msg();
-	fen_msg = creer_fenetre_msg();
-
-	mvprintw(LINES - 1, 0, "Tapez Ctrl + C pour quitter");
-	wrefresh(stdscr);
-
 
 	/**
 	Running : 
@@ -397,17 +381,7 @@ int main(int argc, char *argv[]){
 			4 = Interruption
 			5 = Interruption de l'adversaire
 	**/
-	while((ch = getch()) && running == 1){
-
-		//Action du joueur
-
-
-		switch(ch) {
-			case KEY_MOUSE :
-
-
-			break;
-		}
+	while(running == 1){
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
 			exit(EXIT_FAILURE);
@@ -524,12 +498,6 @@ int main(int argc, char *argv[]){
 
 		break;
 	}
-
-	delwin(fen_box_sim);
-	delwin(fen_sim);
-	delwin(fen_box_msg);
-	delwin(fen_msg);
-	ncurses_stopper();
 
 	return 1;
 }
