@@ -15,6 +15,8 @@
 #define NB_COL_SIM			42
 #define NB_LIGNES_MSG		27
 #define NB_COL_MSG			49
+#define NB_LIGNES_COL  		5
+#define NB_COL_COL			42	
 
 #define HAUTEUR 6
 #define LONGUEUR 7
@@ -22,6 +24,7 @@
 
 WINDOW *fen_sim;							/* Fenetre de simulation partagee par les lems*/
 WINDOW *fen_msg;							/* Fenetre de messages partagee par les lems*/
+WINDOW *fen_col;							/* Fenetre de sélection de la colonne */
 
 int running = 1;
 
@@ -116,6 +119,30 @@ void afficherGrille(unsigned char** grille){
 		printf("\n");
 	}
 
+}
+
+WINDOW *creer_fenetre_box_col() {
+/*Creation de la fenetre de contour de la fenetre de simulation */
+
+	WINDOW *fen_box_col;
+	
+	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 2, 0);
+	box(fen_box_col, 0, 0);
+	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choisissez une colonne");	
+	wrefresh(fen_box_col);
+	
+	return fen_box_col;
+}
+
+WINDOW *creer_fenetre_col() {
+/* Creation de la fenetre de simulation dans la fenetre de contour */
+/* La simulation est affichee dans cette fenetre */
+
+	WINDOW *fen_col;
+	
+	fen_col = newwin(NB_LIGNES_COL, NB_COL_COL,NB_LIGNES_SIM, 1);
+	
+	return fen_col;
 }
 
 
@@ -250,7 +277,6 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 		
 		if((*grille)[i][ligne] == 0){
 			(*grille)[i][ligne] = joueur;
-			//TODO tester si le joueur a gagné
 			return testerVictoire(*grille, i, ligne);
 			
 		}
@@ -275,7 +301,7 @@ int main(int argc, char *argv[]){
   	unsigned char connexion_master[sizeof(unsigned char)];
   	unsigned char bufferMsg[sizeof(unsigned char) * 500];
   	socklen_t adresseSlaveLen = sizeof(struct sockaddr_in);
-
+  	MEVENT event;
 
 	if(argc != 2) {
         fprintf(stderr, "Usage: %s portServeur \n", argv[0]);
@@ -375,7 +401,7 @@ int main(int argc, char *argv[]){
 
 
 	//Lancement des visuels
-	WINDOW *fen_box_sim, *fen_box_msg;
+	WINDOW *fen_box_sim, *fen_box_msg, *fen_box_col;
 
 
 
@@ -385,6 +411,8 @@ int main(int argc, char *argv[]){
 	fen_sim = creer_fenetre_sim();
 	fen_box_msg = creer_fenetre_box_msg();
 	fen_msg = creer_fenetre_msg();
+	fen_box_col = creer_fenetre_box_col();
+	fen_col = creer_fenetre_col();
 
 	mvprintw(LINES - 1, 0, "Tapez Ctrl + C pour quitter");
 	wrefresh(stdscr);
@@ -400,11 +428,20 @@ int main(int argc, char *argv[]){
 	while((ch = getch()) && running == 1){
 
 		//Action du joueur
-
+		wprintw(fen_msg, "A vous de jouer\n");
+		wrefresh(fen_msg);
 
 		switch(ch) {
 			case KEY_MOUSE :
-
+				if (getmouse(&event) == OK) {
+					wprintw(fen_msg, "Clic a la position %d %d de l'ecran\n", event.y, event.x);
+					wrefresh(fen_msg);
+					if (event.y == 30 && event.x >= 82 && event.x <= 98) {
+						
+						wprintw(fen_msg, "Outil Poser active\n");
+						wrefresh(fen_msg);
+					}
+				}
 
 			break;
 		}
@@ -529,6 +566,8 @@ int main(int argc, char *argv[]){
 	delwin(fen_sim);
 	delwin(fen_box_msg);
 	delwin(fen_msg);
+	delwin(fen_box_col);
+	delwin(fen_col);
 	ncurses_stopper();
 
 	return 1;
