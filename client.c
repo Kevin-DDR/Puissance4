@@ -11,12 +11,12 @@
 #include <unistd.h>      /* Pour close */
 #include <signal.h>
 
-#define NB_LIGNES_SIM		18				/* Dimensions des fenetres du programme */
-#define NB_COL_SIM			42
+#define NB_LIGNES_SIM		12				/* Dimensions des fenetres du programme */
+#define NB_COL_SIM			45
 #define NB_LIGNES_MSG		27
 #define NB_COL_MSG			49
 #define NB_LIGNES_COL  		3
-#define NB_COL_COL			42	
+#define NB_COL_COL			45	
 
 #define HAUTEUR 6
 #define LONGUEUR 7
@@ -130,7 +130,7 @@ WINDOW *creer_fenetre_box_col() {
 	box(fen_box_col, 0, 0);
 	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choisissez une colonne");	
 	wrefresh(fen_box_col);
-	mvwprintw(fen_box_col, 2, 3 , "1 2 3 4 5 6 7");	
+	mvwprintw(fen_box_col, 2, 3 , "1   2   3   4   5   6   7");	
 	wrefresh(fen_box_col);
 	
 	return fen_box_col;
@@ -450,6 +450,8 @@ int main(int argc, char *argv[]){
 
 			break;
 		}
+
+		/*
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
 			exit(EXIT_FAILURE);
@@ -534,7 +536,7 @@ int main(int argc, char *argv[]){
 				break;
 		}
 
-
+		*/
 	}
 
 
