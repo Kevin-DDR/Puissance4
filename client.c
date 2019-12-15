@@ -15,7 +15,7 @@
 #define NB_COL_SIM			42
 #define NB_LIGNES_MSG		27
 #define NB_COL_MSG			49
-#define NB_LIGNES_COL  		5
+#define NB_LIGNES_COL  		3
 #define NB_COL_COL			42	
 
 #define HAUTEUR 6
@@ -126,9 +126,11 @@ WINDOW *creer_fenetre_box_col() {
 
 	WINDOW *fen_box_col;
 	
-	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 2, 0);
+	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 4, 0);
 	box(fen_box_col, 0, 0);
 	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choisissez une colonne");	
+	wrefresh(fen_box_col);
+	mvwprintw(fen_box_col, 2, 3 , "1 2 3 4 5 6 7");	
 	wrefresh(fen_box_col);
 	
 	return fen_box_col;
@@ -140,8 +142,9 @@ WINDOW *creer_fenetre_col() {
 
 	WINDOW *fen_col;
 	
-	fen_col = newwin(NB_LIGNES_COL, NB_COL_COL,NB_LIGNES_SIM, 1);
+	fen_col = newwin(NB_LIGNES_COL, NB_COL_COL,NB_LIGNES_SIM+2, 1);
 	
+
 	return fen_col;
 }
 
@@ -413,6 +416,8 @@ int main(int argc, char *argv[]){
 	fen_msg = creer_fenetre_msg();
 	fen_box_col = creer_fenetre_box_col();
 	fen_col = creer_fenetre_col();
+	
+	
 
 	mvprintw(LINES - 1, 0, "Tapez Ctrl + C pour quitter");
 	wrefresh(stdscr);
