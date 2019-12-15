@@ -43,6 +43,28 @@ void ncurses_stopper() {
 	endwin();
 }
 
+void ncurses_couleurs() {
+    /* Verification du support de la couleur */
+    if(has_colors() == FALSE) {
+        ncurses_stopper();
+        fprintf(stderr, "Le terminal ne supporte pas les couleurs.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Activation des couleurs */
+    start_color();
+    use_default_colors();
+    /* Definition de la palette */
+    init_pair(0, COLOR_WHITE, COLOR_BLACK);
+    init_pair(1, COLOR_WHITE, COLOR_RED);
+    init_pair(2, COLOR_WHITE, COLOR_BLUE);
+    init_pair(3, COLOR_WHITE, COLOR_BLACK);
+    //attron(COLOR_PAIR(0)); 
+    
+    
+}
+
+
 void handler(int signum) {
 
 	switch(signum){
@@ -113,8 +135,24 @@ WINDOW *creer_fenetre_msg() {
 void afficherGrille(unsigned char** grille){
 	for(int i = 0; i < HAUTEUR; i++){
 		for(int j = 0; j < LONGUEUR; j++){
+			
 			//TODO choix des couleurs
-			mvwprintw(fen_sim,i,j, "%d",grille[i][j]);
+			switch(grille[i][j]){
+				case 0:
+					attron(COLOR_PAIR(3)); 
+					use_default_colors();
+				break;
+				case 1:
+					attron(COLOR_PAIR(1));
+				break;
+				case 2: 
+					attron(COLOR_PAIR(2));
+			}
+			//attron(COLOR_PAIR(grille[i][j])); 
+			mvaddch(i+1,j*3+1,' ');
+			mvaddch(i+1,j*3+2,' ');
+			mvaddch(i+1,j*3+3,' ');
+			
 			//printf("%d",grille[i][j]);
 
 
@@ -122,7 +160,8 @@ void afficherGrille(unsigned char** grille){
 		}
 		//printf("\n");
 	}
-	wrefresh(fen_sim);
+	use_default_colors();
+	refresh();
 
 }
 
@@ -414,6 +453,7 @@ int main(int argc, char *argv[]){
 
 
 	ncurses_initialiser();
+	ncurses_couleurs();
 	
 	fen_box_sim = creer_fenetre_box_sim();
 	fen_sim = creer_fenetre_sim();
@@ -480,16 +520,9 @@ int main(int argc, char *argv[]){
 					
 				}
 
-				afficherGrille(grille);
-				//printf("-------------------------------------\n");
 				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
+				
 
 
 				//Envoi du coup joué
