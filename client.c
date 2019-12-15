@@ -48,7 +48,7 @@ void handler(int signum) {
 	switch(signum){
 
 		case SIGINT:
-			printf("Interruption \n");
+			//printf("Interruption \n");
 			running = 4;
 			//TODO Envoyer une demande d'interruption au serveur
 		break;
@@ -113,11 +113,16 @@ WINDOW *creer_fenetre_msg() {
 void afficherGrille(unsigned char** grille){
 	for(int i = 0; i < HAUTEUR; i++){
 		for(int j = 0; j < LONGUEUR; j++){
-			printf("%d",grille[i][j]);
+			//TODO choix des couleurs
+			mvwprintw(fen_sim,i,j, "%d",grille[i][j]);
+			//printf("%d",grille[i][j]);
+
+
 			//printf("%d %d \n", i,j);
 		}
-		printf("\n");
+		//printf("\n");
 	}
+	wrefresh(fen_sim);
 
 }
 
@@ -276,7 +281,7 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 		return -1;
 	}
 	for(int i = HAUTEUR -1; i >= 0; i--){
-		printf("%d %d\n", i,ligne);
+		//printf("%d %d\n", i,ligne);
 		
 		if((*grille)[i][ligne] == 0){
 			(*grille)[i][ligne] = joueur;
@@ -367,7 +372,7 @@ int main(int argc, char *argv[]){
 	}
 
 	memcpy(&type,&bufferMsg,sizeof(unsigned char));
-	printf("Type : %u\n",type);
+	//printf("Type : %u\n",type);
 
 	switch(type){
 		case 2: 
@@ -451,13 +456,15 @@ int main(int argc, char *argv[]){
 			break;
 		}
 
-		/*
+
+
+		
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
 			exit(EXIT_FAILURE);
 		}
 		memcpy(&type,&bufferMsg,sizeof(unsigned char));
-		printf("Type : %u\n",type);
+		//printf("Type : %u\n",type);
 
 		//On attends l'état de la partie, on joue, puis on envoi à nouveau
 
@@ -474,7 +481,7 @@ int main(int argc, char *argv[]){
 				}
 
 				afficherGrille(grille);
-				printf("-------------------------------------\n");
+				//printf("-------------------------------------\n");
 				ajouterPiece(&grille, 3,idJoueur);
 				afficherGrille(grille);
 				ajouterPiece(&grille, 3,idJoueur);
@@ -536,7 +543,7 @@ int main(int argc, char *argv[]){
 				break;
 		}
 
-		*/
+		
 	}
 
 
