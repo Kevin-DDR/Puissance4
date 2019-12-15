@@ -133,8 +133,10 @@ WINDOW *creer_fenetre_msg() {
 
 
 void afficherGrille(unsigned char** grille){
+	use_default_colors();
 	for(int i = 0; i < HAUTEUR; i++){
 		for(int j = 0; j < LONGUEUR; j++){
+			use_default_colors();
 			
 			//TODO choix des couleurs
 			switch(grille[i][j]){
