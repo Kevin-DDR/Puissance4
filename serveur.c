@@ -353,6 +353,9 @@ int main(int argc, char *argv[]) {
 				
 			}
 
+			//TODO Corriger le probleme d'envoi de la victoire
+			
+
 			//Envoi de la notification à l'adversaire
 
 
