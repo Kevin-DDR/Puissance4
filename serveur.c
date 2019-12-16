@@ -338,6 +338,68 @@ int main(int argc, char *argv[]) {
 
 			break;
 
+			//Reception de la victoire d'un joueur
+			case 7:
+			//Recupération de l'idPartie
+			memcpy(&idPartie,&bufferMsg[sizeof(unsigned char)],sizeof(unsigned char));
+
+			//Recupération de l'idJoueur
+			memcpy(&idJoueur,&bufferMsg[sizeof(unsigned char) * 2],sizeof(unsigned char));		
+			
+			for(int i = 0; i< HAUTEUR; i++){
+				for(int j = 0; j < LONGUEUR; j++){
+					memcpy(&(tabParties[idPartie]->grille[i][j]),&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],sizeof(unsigned char));
+				}
+				
+			}
+
+			//Envoi de la notification à l'adversaire
+
+
+			memset(&bufferMsg, 0, sizeof(bufferMsg));
+
+
+			//type
+			type = 7;
+			memcpy(&bufferMsg,&type,sizeof(type));
+			//On copie le contenu de la grille ligne par ligne
+			
+			//idPartie
+			tmp = idPartie;
+			memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+			//idJoueur
+			tmp = idJoueur;
+			memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+			for(int i = 0; i< HAUTEUR; i++){
+				for(int j = 0; j < LONGUEUR; j++){
+					memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&(tabParties[idPartie]->grille[i][j]),sizeof(unsigned char));
+				}
+				
+			}
+			
+
+			if(idJoueur == 1){
+				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0,(struct sockaddr*)&(tabParties[idPartie]->adresses[1]), adresseSlaveLen) ==-1 ){
+					perror("Erreur lors de l'envoi de la grille");
+			    	exit(EXIT_FAILURE);
+				}
+			}else{
+				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0,(struct sockaddr*)&(tabParties[idPartie]->adresses[0]), adresseSlaveLen) ==-1 ){
+					perror("Erreur lors de l'envoi de la grille");
+			    	exit(EXIT_FAILURE);
+				}
+			}
+
+			//TODO Supprimer la partie
+
+			//TODO Supprimer la partie
+
+
+
+			break;
+
 			//Reception d'un coup
 			//TODO mise à jour de la grille dans la partie
 			//TODO envoi de la grille à l'autre joueur

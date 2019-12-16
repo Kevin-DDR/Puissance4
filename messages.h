@@ -27,7 +27,7 @@ typedef struct {
 	unsigned char** grille;
 } envoi_etat_t;
 
-//Interruption
+//Jouer une piece
 typedef struct {
 	unsigned char type;//5
 	unsigned char idPartie; 
@@ -41,6 +41,16 @@ typedef struct {
 	unsigned char idPartie; 
 	unsigned char idJoueur;
 } interruption_joueur_t;
+
+//Interruption
+typedef struct {
+	unsigned char type;//7
+	unsigned char idPartie; 
+	unsigned char idJoueur;
+	unsigned char** grille;
+} Victoire_joueur_t;
+
+
 
 
 

@@ -72,7 +72,7 @@ void handler(int signum) {
 
 		case SIGINT:
 			//printf("Interruption \n");
-			running = 4;
+			//running = 4;
 			//TODO Envoyer une demande d'interruption au serveur
 		break;
 	}
@@ -584,6 +584,36 @@ int main(int argc, char *argv[]){
 											//Victoire du joueur
 											afficherGrille(grille);
 											//TODO envoyer le message et passer le running a 2
+
+
+											//Envoi de la victoire au serveur
+											memset(&bufferMsg, 0, sizeof(bufferMsg));
+											//type
+											tmp = 7;
+											memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+											//idPartie
+											tmp = idPartie;
+											memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+											//idJoueur
+											tmp = idJoueur;
+											memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+											for(int i = 0; i< HAUTEUR; i++){
+												for(int j = 0; j < LONGUEUR; j++){
+													memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+												}
+												
+											}
+
+											if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+												perror("Erreur lors de l'envoi de l'etat de la victoire ");
+												ncurses_stopper();
+										    	exit(EXIT_FAILURE);
+											}
+
+
 											running = 2;
 											repeat = 0;
 										}
@@ -632,22 +662,6 @@ int main(int argc, char *argv[]){
 						break;
 					}
 				}
-				
-
-				
-
-
-
-
-				//Reception de l'état de la partie
-
-				//TODO Affichage de la grille
-
-				//TODO recuperation du clique
-
-				//TODO changement du visuel
-
-				//TODO envoi de l'action
 
 				break;
 
@@ -655,6 +669,30 @@ int main(int argc, char *argv[]){
 				case 6:
 					running = 5;
 					repeat = 0;
+				break;
+
+
+				case 7:
+				//Victoire de l'adversaire
+
+					grille = (unsigned char**) malloc(sizeof(unsigned char *)* HAUTEUR);
+				
+					for(int i = 0; i< HAUTEUR; i++){
+						grille[i] = (unsigned char *) malloc(sizeof(unsigned char) * LONGUEUR);
+						for(int j = 0; j < LONGUEUR; j++){
+							memcpy(&grille[i][j],&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],sizeof(unsigned char));
+						}
+						
+					}
+
+					afficherGrille(grille);
+
+
+
+					running = 3;
+					repeat = 0;
+
+
 				break;
 		}
 
