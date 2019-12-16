@@ -59,6 +59,7 @@ void ncurses_couleurs() {
     init_pair(1, COLOR_WHITE, COLOR_RED);
     init_pair(2, COLOR_WHITE, COLOR_BLUE);
     init_pair(3, COLOR_WHITE, COLOR_BLACK);
+    init_pair(4, COLOR_WHITE, COLOR_WHITE);
     //attron(COLOR_PAIR(0)); 
     
     
@@ -133,9 +134,13 @@ WINDOW *creer_fenetre_msg() {
 
 
 void afficherGrille(unsigned char** grille){
+	int offset = 0;
 	use_default_colors();
 	for(int i = 0; i < HAUTEUR; i++){
+		offset = 0;
 		for(int j = 0; j < LONGUEUR; j++){
+
+			
 			use_default_colors();
 			
 			//TODO choix des couleurs
@@ -151,9 +156,19 @@ void afficherGrille(unsigned char** grille){
 					attron(COLOR_PAIR(2));
 			}
 			//attron(COLOR_PAIR(grille[i][j])); 
-			mvaddch(i+1,j*3+1,' ');
-			mvaddch(i+1,j*3+2,' ');
-			mvaddch(i+1,j*3+3,' ');
+			mvaddch(i*2+1,j*6+1 + offset,' ');
+			mvaddch(i*2+1,j*6+2 + offset,' ');
+			mvaddch(i*2+1,j*6+3 + offset,' ');
+			mvaddch(i*2+1,j*6+4 + offset,' ');
+			mvaddch(i*2+1,j*6+5 + offset,' ');
+			mvaddch(i*2+1,j*6+6 + offset,' ');
+
+			mvaddch(i*2+2,j*6+1 + offset,' ');
+			mvaddch(i*2+2,j*6+2 + offset,' ');
+			mvaddch(i*2+2,j*6+3 + offset,' ');
+			mvaddch(i*2+2,j*6+4 + offset,' ');
+			mvaddch(i*2+2,j*6+5 + offset,' ');
+			mvaddch(i*2+2,j*6+6 + offset,' ');
 			
 			//printf("%d",grille[i][j]);
 
