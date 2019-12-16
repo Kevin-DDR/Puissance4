@@ -491,7 +491,7 @@ int main(int argc, char *argv[]){
 			4 = Interruption
 			5 = Interruption de l'adversaire
 	**/
-	while((res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))  && running == 1){
+	while(running == 1 && (res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))){
 		if( res == -1){
 			perror("Erreur lors de la reception de la reception du message ");
 			ncurses_stopper();
@@ -601,7 +601,7 @@ int main(int argc, char *argv[]){
 
 						//Interruption de la partie
 						case 266 :
-							wprintw(fen_msg, "Vous avez quitté la partie\n");
+							//wprintw(fen_msg, "Vous avez quitté la partie\n");
 							wrefresh(fen_msg);
 							running = 4;
 							repeat = 0;
@@ -653,9 +653,8 @@ int main(int argc, char *argv[]){
 
 				//Interruption du programme par l'adversaire
 				case 6:
-				wprintw(fen_msg,"L'adversaire vient de quitter la partie\n");
-				wrefresh(fen_msg);
 					running = 5;
+					repeat = 0;
 				break;
 		}
 
@@ -691,7 +690,8 @@ int main(int argc, char *argv[]){
 		case 4: 
 			
 
-
+			wprintw(fen_msg, "Vous avez quitté la partie\n");
+			wrefresh(fen_msg);
 
 
 
@@ -709,6 +709,15 @@ int main(int argc, char *argv[]){
 
 		break;
 	}
+
+	wprintw(fen_msg,"Appuyez sur F2 pour quitter ! \n");
+  	wrefresh(fen_msg);
+	while((ch = getch()) != 266) {
+		wprintw(fen_msg,"F2 on vous a dit ! \n");
+		wrefresh(fen_msg);
+	}
+
+
 
 	delwin(fen_box_sim);
 	delwin(fen_sim);
