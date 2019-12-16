@@ -11,12 +11,12 @@
 #include <unistd.h>      /* Pour close */
 #include <signal.h>
 
-#define NB_LIGNES_SIM		18				/* Dimensions des fenetres du programme */
-#define NB_COL_SIM			42
+#define NB_LIGNES_SIM		12				/* Dimensions des fenetres du programme */
+#define NB_COL_SIM			45
 #define NB_LIGNES_MSG		27
 #define NB_COL_MSG			49
-#define NB_LIGNES_COL  		5
-#define NB_COL_COL			42	
+#define NB_LIGNES_COL  		3
+#define NB_COL_COL			45	
 
 #define HAUTEUR 6
 #define LONGUEUR 7
@@ -43,12 +43,35 @@ void ncurses_stopper() {
 	endwin();
 }
 
+void ncurses_couleurs() {
+    /* Verification du support de la couleur */
+    if(has_colors() == FALSE) {
+        ncurses_stopper();
+        fprintf(stderr, "Le terminal ne supporte pas les couleurs.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Activation des couleurs */
+    start_color();
+    use_default_colors();
+    /* Definition de la palette */
+    init_pair(0, COLOR_WHITE, COLOR_BLACK);
+    init_pair(1, COLOR_WHITE, COLOR_RED);
+    init_pair(2, COLOR_WHITE, COLOR_BLUE);
+    init_pair(3, COLOR_WHITE, COLOR_BLACK);
+    init_pair(4, COLOR_WHITE, COLOR_WHITE);
+    //attron(COLOR_PAIR(0)); 
+    
+    
+}
+
+
 void handler(int signum) {
 
 	switch(signum){
 
 		case SIGINT:
-			printf("Interruption \n");
+			//printf("Interruption \n");
 			running = 4;
 			//TODO Envoyer une demande d'interruption au serveur
 		break;
@@ -111,13 +134,45 @@ WINDOW *creer_fenetre_msg() {
 
 
 void afficherGrille(unsigned char** grille){
+	int offset = 0;
+	use_default_colors();
 	for(int i = 0; i < HAUTEUR; i++){
+		offset = 0;
 		for(int j = 0; j < LONGUEUR; j++){
-			printf("%d",grille[i][j]);
-			//printf("%d %d \n", i,j);
+
+			
+			use_default_colors();
+			
+			//TODO choix des couleurs
+			switch(grille[i][j]){
+				case 0:
+					attron(COLOR_PAIR(3)); 
+					use_default_colors();
+				break;
+				case 1:
+					attron(COLOR_PAIR(1));
+				break;
+				case 2: 
+					attron(COLOR_PAIR(2));
+			}
+			//attron(COLOR_PAIR(grille[i][j])); 
+			mvaddch(i*2+1,j*6+1 + offset,' ');
+			mvaddch(i*2+1,j*6+2 + offset,' ');
+			mvaddch(i*2+1,j*6+3 + offset,' ');
+			mvaddch(i*2+1,j*6+4 + offset,' ');
+			mvaddch(i*2+1,j*6+5 + offset,' ');
+			mvaddch(i*2+1,j*6+6 + offset,' ');
+
+			mvaddch(i*2+2,j*6+1 + offset,' ');
+			mvaddch(i*2+2,j*6+2 + offset,' ');
+			mvaddch(i*2+2,j*6+3 + offset,' ');
+			mvaddch(i*2+2,j*6+4 + offset,' ');
+			mvaddch(i*2+2,j*6+5 + offset,' ');
+			mvaddch(i*2+2,j*6+6 + offset,' ');
 		}
-		printf("\n");
 	}
+	use_default_colors();
+	refresh();
 
 }
 
@@ -126,9 +181,11 @@ WINDOW *creer_fenetre_box_col() {
 
 	WINDOW *fen_box_col;
 	
-	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 2, 0);
+	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 4, 0);
 	box(fen_box_col, 0, 0);
 	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choisissez une colonne");	
+	wrefresh(fen_box_col);
+	mvwprintw(fen_box_col, 2, 3 , "1     2     3     4     5     6     7");	
 	wrefresh(fen_box_col);
 	
 	return fen_box_col;
@@ -140,8 +197,9 @@ WINDOW *creer_fenetre_col() {
 
 	WINDOW *fen_col;
 	
-	fen_col = newwin(NB_LIGNES_COL, NB_COL_COL,NB_LIGNES_SIM, 1);
+	fen_col = newwin(NB_LIGNES_COL, NB_COL_COL,NB_LIGNES_SIM+2, 1);
 	
+
 	return fen_col;
 }
 
@@ -263,6 +321,10 @@ for(int colStart = 1; colStart < maxCol - 4; colStart++){
 	return 0;
 }
 
+int colNonPleine(unsigned char*** grille, int col){
+	return ((*grille)[0][col] == 0);
+}
+
 
 
 //Depot d'une piece dans la grille
@@ -273,7 +335,7 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 		return -1;
 	}
 	for(int i = HAUTEUR -1; i >= 0; i--){
-		printf("%d %d\n", i,ligne);
+		//printf("%d %d\n", i,ligne);
 		
 		if((*grille)[i][ligne] == 0){
 			(*grille)[i][ligne] = joueur;
@@ -295,7 +357,7 @@ int main(int argc, char *argv[]){
 	unsigned char type,idPartie,idJoueur,tmp;
 	idPartie = idJoueur = 0;
 	unsigned char** grille;
-	int ch;
+	int ch, res, repeat;
 	int sockfd;
   	struct sockaddr_in adresseServeur;
   	unsigned char connexion_master[sizeof(unsigned char)];
@@ -307,7 +369,7 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "Usage: %s portServeur \n", argv[0]);
         fprintf(stderr, "\tOu:\n");
         fprintf(stderr, "\tport : port UDP du serveur\n");
-
+        ncurses_stopper();
         exit(EXIT_FAILURE);
     }
 
@@ -330,12 +392,12 @@ int main(int argc, char *argv[]){
     // Creation de la socket 
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		perror("Erreur lors de la creation de la socket ");
+		ncurses_stopper();
 		exit(EXIT_FAILURE);
 	}
 	int broadcastEnable=1;
 	setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
 	/*
-
 	// Creation de l'adresse du serveur 
 	memset(&adresseServeur, 0, sizeof(struct sockaddr_in));
 	adresseServeur.sin_family = AF_INET;
@@ -344,7 +406,6 @@ int main(int argc, char *argv[]){
 		perror("Erreur lors de la conversion de l'adresse ");
 		exit(EXIT_FAILURE);
 	}
-
 	// connexion_master_udp.port = atoi(argv[3]); 
 	type = 1;
 	memcpy(&connexion_master,&type,sizeof(type));
@@ -352,6 +413,7 @@ int main(int argc, char *argv[]){
 
 	if(sendto(sockfd, connexion_master, sizeof(connexion_master), 0, (struct sockaddr *)&s, sizeof(struct sockaddr_in)) ==-1 ){
 		perror("Erreur lors de l'envoi de l'envoi de la demande de connexion ");
+		ncurses_stopper();
     	exit(EXIT_FAILURE);
 	}
 
@@ -360,11 +422,12 @@ int main(int argc, char *argv[]){
 
 	if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 		perror("Erreur lors de la reception de la reception du message ");
+		ncurses_stopper();
 		exit(EXIT_FAILURE);
 	}
 
 	memcpy(&type,&bufferMsg,sizeof(unsigned char));
-	printf("Type : %u\n",type);
+	//printf("Type : %u\n",type);
 
 	switch(type){
 		case 2: 
@@ -381,11 +444,10 @@ int main(int argc, char *argv[]){
 			}
 
 
-			
-
-
 		break;
+
 	}
+	
 
 
 
@@ -396,6 +458,7 @@ int main(int argc, char *argv[]){
 
 	if(sigaction(SIGINT, &action, NULL) == -1) {
 		perror("Erreur lors du positionnement ");
+		ncurses_stopper();
 		exit(EXIT_FAILURE);
 	}
 
@@ -406,6 +469,7 @@ int main(int argc, char *argv[]){
 
 
 	ncurses_initialiser();
+	ncurses_couleurs();
 	
 	fen_box_sim = creer_fenetre_box_sim();
 	fen_sim = creer_fenetre_sim();
@@ -413,6 +477,8 @@ int main(int argc, char *argv[]){
 	fen_msg = creer_fenetre_msg();
 	fen_box_col = creer_fenetre_box_col();
 	fen_col = creer_fenetre_col();
+	
+	
 
 	mvprintw(LINES - 1, 0, "Tapez Ctrl + C pour quitter");
 	wrefresh(stdscr);
@@ -425,32 +491,17 @@ int main(int argc, char *argv[]){
 			4 = Interruption
 			5 = Interruption de l'adversaire
 	**/
-	while((ch = getch()) && running == 1){
-
-		//Action du joueur
-		wprintw(fen_msg, "A vous de jouer\n");
-		wrefresh(fen_msg);
-
-		switch(ch) {
-			case KEY_MOUSE :
-				if (getmouse(&event) == OK) {
-					wprintw(fen_msg, "Clic a la position %d %d de l'ecran\n", event.y, event.x);
-					wrefresh(fen_msg);
-					if (event.y == 30 && event.x >= 82 && event.x <= 98) {
-						
-						wprintw(fen_msg, "Outil Poser active\n");
-						wrefresh(fen_msg);
-					}
-				}
-
-			break;
-		}
-		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
+	while((res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))  && running == 1){
+		if( res == -1){
 			perror("Erreur lors de la reception de la reception du message ");
+			ncurses_stopper();
 			exit(EXIT_FAILURE);
 		}
+
+
+		
 		memcpy(&type,&bufferMsg,sizeof(unsigned char));
-		printf("Type : %u\n",type);
+		//printf("Type : %u\n",type);
 
 		//On attends l'état de la partie, on joue, puis on envoi à nouveau
 
@@ -467,46 +518,123 @@ int main(int argc, char *argv[]){
 				}
 
 				afficherGrille(grille);
-				printf("-------------------------------------\n");
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
-				ajouterPiece(&grille, 3,idJoueur);
-				afficherGrille(grille);
+
+				//Todo rajouter un while ici
+				repeat = 1;
+
+				while(repeat){
+					ch = getch();
+					//while ((ch = getchar()) != '\n' && ch != EOF) { }
+
+					//Action du joueur
+					wprintw(fen_msg, "A vous de jouer\n");
+					wrefresh(fen_msg);
+					wprintw(fen_msg, "Clic a la position %d de l'ecran\n", ch);
+					switch(ch) {
+						case KEY_MOUSE :
+							if (getmouse(&event) == OK) {
+								wprintw(fen_msg, "Clic a la position %d %d de l'ecran\n", event.x, event.y);
+								wrefresh(fen_msg);
+								if (event.y >= 17 && event.y <= 19 && event.x >= 1 && event.x <= 41) {
+									
+									wprintw(fen_msg, "Tentative d'ajout à la colonne %d\n",(event.x-3) /6);
+									wrefresh(fen_msg);
+									if(colNonPleine(&grille,(event.x-3) /6)){
+										//La colonne n'est pas pleine, on joue la piece
+										//Piece ajoutée mais pas de victoire
+										res = ajouterPiece(&grille, (event.x-3) /6,idJoueur);
+										//wprintw(fen_msg, "Ajout OK\n");
+										if( res == 0){
+											afficherGrille(grille);
+											repeat = 0;
+											//Envoi du coup joué
+
+											memset(&bufferMsg, 0, sizeof(bufferMsg));
+											//type
+											tmp = 5;
+											memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+											//idPartie
+											tmp = idPartie;
+											memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+											//idJoueur
+											tmp = idJoueur;
+											memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
 
 
-				//Envoi du coup joué
 
-				memset(&bufferMsg, 0, sizeof(bufferMsg));
-				//type
-				tmp = 5;
-				memcpy(&bufferMsg,&tmp,sizeof(tmp));
+											//On copie le contenu de la grille ligne par ligne
+											for(int i = 0; i< HAUTEUR; i++){
+												for(int j = 0; j < LONGUEUR; j++){
+													memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+												}
+												
+											}
 
-				//idPartie
-				tmp = idPartie;
-				memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
-
-				//idJoueur
-				tmp = idJoueur;
-				memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+											if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+												perror("Erreur lors de l'envoi de l'etat de la partie ");
+												ncurses_stopper();
+										    	exit(EXIT_FAILURE);
+											}
 
 
 
-				//On copie le contenu de la grille ligne par ligne
-				for(int i = 0; i< HAUTEUR; i++){
-					for(int j = 0; j < LONGUEUR; j++){
-						memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+										}else{
+											//Victoire du joueur
+											afficherGrille(grille);
+											//TODO envoyer le message et passer le running a 2
+											running = 2;
+											repeat = 0;
+										}
+
+									}else{
+										wprintw(fen_msg, "La colonne %d est pleine, veuillez en sélectionner une autre!\n",(event.x-3) /6);
+										wrefresh(fen_msg);
+									}
+
+									
+								}
+							}
+
+						break;
+
+						//Interruption de la partie
+						case 266 :
+							wprintw(fen_msg, "Vous avez quitté la partie\n");
+							wrefresh(fen_msg);
+							running = 4;
+							repeat = 0;
+
+							//Envoi d'un message au serveur
+							//Type 3 == refus
+							memset(&bufferMsg, 0, sizeof(bufferMsg));
+							//type
+							tmp = 6;
+							memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+							//idPartie
+							tmp = idPartie;
+							memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+							//idJoueur
+							tmp = idJoueur;
+							memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+							if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+								perror("Erreur lors de l'envoi de l'etat de l'interruption ");
+								ncurses_stopper();
+						    	exit(EXIT_FAILURE);
+							}
+
+							
+
+						break;
 					}
-					
 				}
+				
 
-				if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
-					perror("Erreur lors de l'envoi de l'etat de la partie ");
-			    	exit(EXIT_FAILURE);
-				}
+				
 
 
 
@@ -525,39 +653,59 @@ int main(int argc, char *argv[]){
 
 				//Interruption du programme par l'adversaire
 				case 6:
+				wprintw(fen_msg,"L'adversaire vient de quitter la partie\n");
+				wrefresh(fen_msg);
 					running = 5;
 				break;
 		}
 
 
+		
 	}
 
-
+	/**
+	Running : 
+			2 = Victoire
+			3 = victoire de l'adversaire
+			4 = Interruption
+			5 = Interruption de l'adversaire
+			6  = match nul
+	**/
 	//Selon le contenu de running, on determine la cause de la fin de la partie
 	switch(running){
-		//Control C donc envoi d'un message
-		case 0: 
-			//Envoi d'un message au serveur
-			//Type 3 == refus
-			memset(&bufferMsg, 0, sizeof(bufferMsg));
-			//type
-			tmp = 6;
-			memcpy(&bufferMsg,&tmp,sizeof(tmp));
 
-			//idPartie
-			tmp = idPartie;
-			memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+		case 2:
+			wprintw(fen_msg, "Vous avez gagnez!!\n");
+			wrefresh(fen_msg);
+		break;
 
-			//idJoueur
-			tmp = idJoueur;
-			memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
-
-			if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
-				perror("Erreur lors de l'envoi de l'etat de l'interruption ");
-		    	exit(EXIT_FAILURE);
-			}
+		case 3:
+			wprintw(fen_msg, "Vous avez perdu!!\n");
+			wrefresh(fen_msg);
+		break;
 
 
+
+
+		//Interruption du joueur
+		case 4: 
+			
+
+
+
+
+
+		break;
+
+		case 5: 
+			wprintw(fen_msg, "L'adversaire a quitté la partie\n");
+			wrefresh(fen_msg);
+
+		break;
+
+		case 6: 
+			wprintw(fen_msg, "Match nul\n");
+			wrefresh(fen_msg);
 
 		break;
 	}
