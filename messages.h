@@ -50,6 +50,14 @@ typedef struct {
 	unsigned char** grille;
 } Victoire_joueur_t;
 
+//Match Nul
+typedef struct {
+	unsigned char type;//8
+	unsigned char idPartie; 
+	unsigned char idJoueur;
+	unsigned char** grille;
+} Match_Nul_t;
+
 
 
 

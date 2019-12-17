@@ -321,6 +321,16 @@ int testerVictoire(unsigned char** gridTable,int rowNum,int colNum) {
 	return 0;
 }
 
+int matchNul(unsigned char** grille){
+	for(int i = 0; i < LONGUEUR; i++){
+		if(grille[0][i] == 0){
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 int colNonPleine(unsigned char*** grille, int col){
 	return ((*grille)[0][col] == 0);
 }
@@ -487,6 +497,7 @@ int main(int argc, char *argv[]){
 			3 = victoire de l'adversaire
 			4 = Interruption
 			5 = Interruption de l'adversaire
+			6 = Match NUL
 	**/
 	while(running == 1 && (res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))){
 		if( res == -1){
@@ -542,38 +553,83 @@ int main(int argc, char *argv[]){
 										res = ajouterPiece(&grille, (event.x) /6,idJoueur);
 										//wprintw(fen_msg, "Ajout OK\n");
 										if( res == 0){
-											afficherGrille(grille);
-											repeat = 0;
-											//Envoi du coup joué
 
-											memset(&bufferMsg, 0, sizeof(bufferMsg));
-											//type
-											tmp = 5;
-											memcpy(&bufferMsg,&tmp,sizeof(tmp));
+											//Pas de gagnant apres ce coup
+											//On test si il y a un match nul
 
-											//idPartie
-											tmp = idPartie;
-											memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+											if(matchNul(grille)){
+												//Si match nul on envoit un message au serveur
+												running = 6;
+												repeat = 0;
 
-											//idJoueur
-											tmp = idJoueur;
-											memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+												afficherGrille(grille);
+												memset(&bufferMsg, 0, sizeof(bufferMsg));
+												//type
+												tmp = 8;
+												memcpy(&bufferMsg,&tmp,sizeof(tmp));
 
+												//idPartie
+												tmp = idPartie;
+												memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
 
+												//idJoueur
+												tmp = idJoueur;
+												memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
 
-											//On copie le contenu de la grille ligne par ligne
-											for(int i = 0; i< HAUTEUR; i++){
-												for(int j = 0; j < LONGUEUR; j++){
-													memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+												for(int i = 0; i< HAUTEUR; i++){
+													for(int j = 0; j < LONGUEUR; j++){
+														memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+													}
+													
 												}
-												
+
+												if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+													perror("Erreur lors de l'envoi de l'etat du match nul ");
+													ncurses_stopper();
+											    	exit(EXIT_FAILURE);
+												}
+
+
+											}else{
+												//Sinon on continu la partie
+												afficherGrille(grille);
+												repeat = 0;
+												//Envoi du coup joué
+
+												memset(&bufferMsg, 0, sizeof(bufferMsg));
+												//type
+												tmp = 5;
+												memcpy(&bufferMsg,&tmp,sizeof(tmp));
+
+												//idPartie
+												tmp = idPartie;
+												memcpy(&bufferMsg[sizeof(unsigned char)],&tmp,sizeof(tmp));
+
+												//idJoueur
+												tmp = idJoueur;
+												memcpy(&bufferMsg[sizeof(unsigned char) *2],&tmp,sizeof(tmp));
+
+
+
+												//On copie le contenu de la grille ligne par ligne
+												for(int i = 0; i< HAUTEUR; i++){
+													for(int j = 0; j < LONGUEUR; j++){
+														memcpy(&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],&grille[i][j],sizeof(unsigned char));
+													}
+													
+												}
+
+												if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
+													perror("Erreur lors de l'envoi de l'etat de la partie ");
+													ncurses_stopper();
+											    	exit(EXIT_FAILURE);
+												}
 											}
 
-											if(sendto(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr *)&adresseServeur, sizeof(struct sockaddr_in)) ==-1 ){
-												perror("Erreur lors de l'envoi de l'etat de la partie ");
-												ncurses_stopper();
-										    	exit(EXIT_FAILURE);
-											}
+
+
+
+											
 
 
 
@@ -688,6 +744,29 @@ int main(int argc, char *argv[]){
 
 
 					running = 3;
+					repeat = 0;
+
+
+				break;
+
+				case 8:
+				//Match Nul
+
+					grille = (unsigned char**) malloc(sizeof(unsigned char *)* HAUTEUR);
+				
+					for(int i = 0; i< HAUTEUR; i++){
+						grille[i] = (unsigned char *) malloc(sizeof(unsigned char) * LONGUEUR);
+						for(int j = 0; j < LONGUEUR; j++){
+							memcpy(&grille[i][j],&bufferMsg[sizeof(unsigned char)*3 + ((i * LONGUEUR  + j ) * sizeof(unsigned char))],sizeof(unsigned char));
+						}
+						
+					}
+
+					afficherGrille(grille);
+
+
+
+					running = 6;
 					repeat = 0;
 
 
