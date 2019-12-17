@@ -143,7 +143,7 @@ void afficherGrille(unsigned char** grille){
 			
 			use_default_colors();
 			
-			//TODO choix des couleurs
+			//hoix des couleurs
 			switch(grille[i][j]){
 				case 0:
 					attron(COLOR_PAIR(3)); 
@@ -360,9 +360,6 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 
 int main(int argc, char *argv[]){
 
-	//TODO faire la connexion au serveur
-	//TODO Faire un broadcast pour trouver l'adresse du serveur
-
 	unsigned char type,idPartie,idJoueur,tmp;
 	idPartie = idJoueur = 0;
 	unsigned char** grille;
@@ -427,8 +424,6 @@ int main(int argc, char *argv[]){
 	}
 
 
-	//TODO Mettre a jour l'adresse pour ne plus broadcast
-
 	if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen) == -1) {
 		perror("Erreur lors de la reception de la reception du message ");
 		ncurses_stopper();
@@ -454,6 +449,10 @@ int main(int argc, char *argv[]){
 
 
 		break;
+		case 3:
+			running = 7;
+		break;
+		//TODO gerer les connexions refusees
 
 	}
 	
@@ -497,6 +496,7 @@ int main(int argc, char *argv[]){
 			4 = Interruption
 			5 = Interruption de l'adversaire
 			6 = Match NUL
+			7 = refus de connexion
 	**/
 	while(running == 1 && (res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))){
 		if( res == -1){
@@ -526,7 +526,6 @@ int main(int argc, char *argv[]){
 
 				afficherGrille(grille);
 
-				//Todo rajouter un while ici
 				repeat = 1;
 
 				while(repeat){
@@ -819,6 +818,12 @@ int main(int argc, char *argv[]){
 
 		case 6: 
 			wprintw(fen_msg, "Match nul\n");
+			wrefresh(fen_msg);
+
+		break;
+
+		case 7: 
+			wprintw(fen_msg, "Connexion refusée\n");
 			wrefresh(fen_msg);
 
 		break;

@@ -133,12 +133,6 @@ int main(int argc, char *argv[]) {
     	exit(EXIT_FAILURE);
 	}
 
-	//TODO faire un handler pour les signaux
-
-
-
-	//TODO Rajouter le while ici
-	//tODO Verifier que le nombre de partie depasse pas le max;
 	while(1){
 		if(recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseMaster, &adresseSlaveLen) == -1) {
 			perror("Erreur lors de la reception de la reception du message ");
@@ -210,8 +204,6 @@ int main(int argc, char *argv[]) {
 					}
 
 
-					
-
 					//TODO Tirer au hasard quel joueur recoit le premier message, puis envoyer a l'adresse qui correspond.
 
 					memset(&bufferMsg, 0, sizeof(bufferMsg));
@@ -232,7 +224,6 @@ int main(int argc, char *argv[]) {
 						}
 						
 					}
-
 
 					/*
 					for(int i = 0; i< HAUTEUR * LONGUEUR + 1; i++){
