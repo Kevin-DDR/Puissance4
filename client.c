@@ -284,34 +284,34 @@ int testerVictoire(unsigned char** gridTable,int rowNum,int colNum) {
 
 
 	// Diagonale Haut gauche jusqu'a bas droite
-for( int rowStart = 0; rowStart < maxRow - 4; rowStart++){
-    count = 0;
-    int row, col;
-    for( row = rowStart, col = 0; row < maxRow && col < maxCol; row++, col++ ){
-        if(gridTable[row][col] == player){
-            count++;
-            if(count >= 4) return 1;
-        }
-        else {
-            count = 0;
-        }
-    }
-}
+	for( int rowStart = 0; rowStart < maxRow - 4; rowStart++){
+	    count = 0;
+	    int row, col;
+	    for( row = rowStart, col = 0; row < maxRow && col < maxCol; row++, col++ ){
+	        if(gridTable[row][col] == player){
+	            count++;
+	            if(count >= 4) return 1;
+	        }
+	        else {
+	            count = 0;
+	        }
+	    }
+	}
 
-// Haut droit vers bas gauche
-for(int colStart = 1; colStart < maxCol - 4; colStart++){
-    count = 0;
-    int row, col;
-    for( row = 0, col = colStart; row < maxRow && col < maxCol; row++, col++ ){
-        if(gridTable[row][col] == player){
-            count++;
-            if(count >= 4) return 1;
-        }
-        else {
-            count = 0;
-        }
-    }
-}
+	// Haut droit vers bas gauche
+	for(int colStart = 1; colStart < maxCol - 4; colStart++){
+	    count = 0;
+	    int row, col;
+	    for( row = 0, col = colStart; row < maxRow && col < maxCol; row++, col++ ){
+	        if(gridTable[row][col] == player){
+	            count++;
+	            if(count >= 4) return 1;
+	        }
+	        else {
+	            count = 0;
+	        }
+	    }
+	}
 
 
 
@@ -448,9 +448,6 @@ int main(int argc, char *argv[]){
 
 	}
 	
-
-
-
 	struct sigaction action;
 	action.sa_handler = handler;
 	sigemptyset(&action.sa_mask);
@@ -480,7 +477,7 @@ int main(int argc, char *argv[]){
 	
 	
 
-	mvprintw(LINES - 1, 0, "Tapez Ctrl + C pour quitter");
+	mvprintw(LINES - 1, 0, "Tapez F2 pendant votre tour pour quitter");
 	wrefresh(stdscr);
 
 
@@ -493,7 +490,7 @@ int main(int argc, char *argv[]){
 	**/
 	while(running == 1 && (res = recvfrom(sockfd, bufferMsg, sizeof(bufferMsg), 0, (struct sockaddr*)&adresseServeur, &adresseSlaveLen))){
 		if( res == -1){
-			perror("Erreur lors de la reception de la reception du message ");
+			perror("Erreur lors de la reception du message ");
 			ncurses_stopper();
 			exit(EXIT_FAILURE);
 		}
@@ -523,13 +520,13 @@ int main(int argc, char *argv[]){
 				repeat = 1;
 
 				while(repeat){
-					ch = getch();
-					//while ((ch = getchar()) != '\n' && ch != EOF) { }
 
-					//Action du joueur
 					wprintw(fen_msg, "A vous de jouer\n");
 					wrefresh(fen_msg);
-					wprintw(fen_msg, "Clic a la position %d de l'ecran\n", ch);
+					ch = getch();
+					//while ((ch = getchar()) != '\n' && ch != EOF) { }
+					
+					wrefresh(fen_msg);
 					switch(ch) {
 						case KEY_MOUSE :
 							if (getmouse(&event) == OK) {
@@ -537,12 +534,12 @@ int main(int argc, char *argv[]){
 								wrefresh(fen_msg);
 								if (event.y >= 17 && event.y <= 19 && event.x >= 1 && event.x <= 41) {
 									
-									wprintw(fen_msg, "Tentative d'ajout à la colonne %d\n",(event.x-3) /6);
+									wprintw(fen_msg, "Tentative d'ajout à la colonne %d\n",(event.x) /6);
 									wrefresh(fen_msg);
-									if(colNonPleine(&grille,(event.x-3) /6)){
+									if(colNonPleine(&grille,(event.x) /6)){
 										//La colonne n'est pas pleine, on joue la piece
 										//Piece ajoutée mais pas de victoire
-										res = ajouterPiece(&grille, (event.x-3) /6,idJoueur);
+										res = ajouterPiece(&grille, (event.x) /6,idJoueur);
 										//wprintw(fen_msg, "Ajout OK\n");
 										if( res == 0){
 											afficherGrille(grille);
@@ -583,8 +580,6 @@ int main(int argc, char *argv[]){
 										}else{
 											//Victoire du joueur
 											afficherGrille(grille);
-											//TODO envoyer le message et passer le running a 2
-
 
 											//Envoi de la victoire au serveur
 											memset(&bufferMsg, 0, sizeof(bufferMsg));
@@ -624,6 +619,9 @@ int main(int argc, char *argv[]){
 									}
 
 									
+								}else{
+									wprintw(fen_msg, "Veuillez cliquer sur un numéro de colonne!\n");
+									wrefresh(fen_msg);
 								}
 							}
 
