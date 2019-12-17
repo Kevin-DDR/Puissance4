@@ -33,6 +33,10 @@ partie_t* creerPartie(){
 	return p;
 }
 
+void supprimerPartie(partie_t* p){
+	p = NULL;
+}
+
 void afficherGrille(unsigned char** grille){
 	for(int i = 0; i < HAUTEUR; i++){
 		for(int j = 0; j < LONGUEUR; j++){
@@ -332,6 +336,9 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
+			supprimerPartie(tabParties[idPartie]);
+			tabParties[idPartie] = NULL;
+
 			//TODO Supprimer la partie
 
 
@@ -398,7 +405,8 @@ int main(int argc, char *argv[]) {
 			//TODO Supprimer la partie
 
 			//TODO Supprimer la partie
-
+			supprimerPartie(tabParties[idPartie]);
+			tabParties[idPartie] = NULL;
 
 
 			break;
@@ -456,7 +464,8 @@ int main(int argc, char *argv[]) {
 			//TODO Supprimer la partie
 
 			//TODO Supprimer la partie
-
+			supprimerPartie(tabParties[idPartie]);
+			tabParties[idPartie] = NULL;
 
 
 			break;

@@ -299,7 +299,7 @@ int testerVictoire(unsigned char** gridTable,int rowNum,int colNum) {
 	}
 
 	// Haut droit vers bas gauche
-	for(int colStart = 1; colStart < maxCol - 4; colStart++){
+	for(int colStart = 0; colStart < maxCol - 4; colStart++){
 	    count = 0;
 	    int row, col;
 	    for( row = 0, col = colStart; row < maxRow && col < maxCol; row++, col++ ){
