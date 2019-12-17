@@ -361,7 +361,6 @@ int ajouterPiece(unsigned char*** grille, unsigned char ligne, unsigned char jou
 int main(int argc, char *argv[]){
 
 	//TODO faire la connexion au serveur
-	//TODO Faire un handler pour les signaux
 	//TODO Faire un broadcast pour trouver l'adresse du serveur
 
 	unsigned char type,idPartie,idJoueur,tmp;

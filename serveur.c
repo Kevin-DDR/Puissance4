@@ -5,6 +5,7 @@
 #include <string.h>      /* Pour memset */
 #include "messages.h"
 #include <unistd.h>      /* Pour close */
+#include <signal.h>
 
 #define HAUTEUR 6
 #define LONGUEUR 7
@@ -48,6 +49,21 @@ void afficherGrille(unsigned char** grille){
 
 }
 
+void handler(int signum) {
+
+	switch(signum){
+
+		case SIGINT:
+			printf("Interruption \n");
+			//running = 4;
+			//TODO Envoyer une demande d'interruption au serveur
+
+
+		break;
+	}
+  
+}
+
 
 int main(int argc, char *argv[]) {
 	/* Ouvrir le socket dans un while ? Ou alors  */
@@ -79,6 +95,20 @@ int main(int argc, char *argv[]) {
 
 
     partie_t** tabParties = (partie_t**) malloc(sizeof(partie_t*) * atoi(argv[2]));
+
+
+
+
+    struct sigaction action;
+	action.sa_handler = handler;
+	sigemptyset(&action.sa_mask);
+	action.sa_flags = 0;
+
+	if(sigaction(SIGINT, &action, NULL) == -1) {
+		perror("Erreur lors du positionnement ");
+		exit(EXIT_FAILURE);
+	}
+
 
 
 
@@ -483,7 +513,7 @@ int main(int argc, char *argv[]) {
 
 	
 
-
+	printf("Fin du server\n");
 
 	/******************************************
 
