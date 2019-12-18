@@ -42,7 +42,7 @@ typedef struct {
 	unsigned char idJoueur;
 } interruption_joueur_t;
 
-//Interruption
+//Victoire du joueur
 typedef struct {
 	unsigned char type;//7
 	unsigned char idPartie; 
@@ -57,6 +57,11 @@ typedef struct {
 	unsigned char idJoueur;
 	unsigned char** grille;
 } Match_Nul_t;
+
+typedef struct{
+	unsigned char type;//9
+} accuse_t;
+
 
 
 
