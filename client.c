@@ -390,8 +390,8 @@ int main(int argc, char *argv[]){
     s.sin_family = AF_INET;
     s.sin_port = (in_port_t)htons(atoi(argv[1]));
     s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    type = 1;
 
+    type = 1;
 	memcpy(&connexion_master,&type,sizeof(type));
 
 	
@@ -429,6 +429,17 @@ int main(int argc, char *argv[]){
 		ncurses_stopper();
 		exit(EXIT_FAILURE);
 	}
+
+	type = 9;
+	memcpy(&connexion_master,&type,sizeof(type));
+
+	if(sendto(sockfd, connexion_master, sizeof(connexion_master), 0, (struct sockaddr *)&s, sizeof(struct sockaddr_in)) ==-1 ){
+		perror("Erreur lors de l'envoi de l'envoi de l'accuse de reception ");
+		ncurses_stopper();
+    	exit(EXIT_FAILURE);
+	}
+
+
 
 	memcpy(&type,&bufferMsg,sizeof(unsigned char));
 	//printf("Type : %u\n",type);
@@ -503,6 +514,15 @@ int main(int argc, char *argv[]){
 			perror("Erreur lors de la reception du message ");
 			ncurses_stopper();
 			exit(EXIT_FAILURE);
+		}
+
+		type = 9;
+		memcpy(&connexion_master,&type,sizeof(type));
+
+		if(sendto(sockfd, connexion_master, sizeof(connexion_master), 0, (struct sockaddr *)&s, sizeof(struct sockaddr_in)) ==-1 ){
+			perror("Erreur lors de l'envoi de l'envoi de l'accuse de reception ");
+			ncurses_stopper();
+	    	exit(EXIT_FAILURE);
 		}
 
 
