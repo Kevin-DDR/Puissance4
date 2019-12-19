@@ -1,6 +1,6 @@
 # Puissance4 
 
-A connect 4 game made in `C` using the `ncurses` library.
+A multiplayer connect 4 game able to be played from multiple computer in the same network made in `C` using the `ncurses` library.
 
 Developped by :
 -Tarek AINOUZ
