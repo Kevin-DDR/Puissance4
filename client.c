@@ -47,7 +47,7 @@ void ncurses_couleurs() {
     /* Verification du support de la couleur */
     if(has_colors() == FALSE) {
         ncurses_stopper();
-        fprintf(stderr, "Le terminal ne supporte pas les couleurs.\n");
+        fprintf(stderr, "Thé terminal doesn't handle colors.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -183,7 +183,7 @@ WINDOW *creer_fenetre_box_col() {
 	
 	fen_box_col = newwin(NB_LIGNES_COL + 2, NB_COL_COL + 2, NB_LIGNES_SIM + 4, 0);
 	box(fen_box_col, 0, 0);
-	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choisissez une colonne");	
+	mvwprintw(fen_box_col, 0, (NB_COL_COL + 2) / 2 - 5, "Choose a column");	
 	wrefresh(fen_box_col);
 	mvwprintw(fen_box_col, 2, 3 , "1     2     3     4     5     6     7");	
 	wrefresh(fen_box_col);
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]){
 	
     // Creation de la socket 
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		perror("Erreur lors de la creation de la socket ");
+		perror("Socket création failed ");
 		ncurses_stopper();
 		exit(EXIT_FAILURE);
 	}
@@ -409,7 +409,7 @@ int main(int argc, char *argv[]){
 	adresseServeur.sin_family = AF_INET;
 	adresseServeur.sin_port = htons(atoi(argv[2]));
 	if(inet_pton(AF_INET, argv[1], &adresseServeur.sin_addr) != 1) {
-		perror("Erreur lors de la conversion de l'adresse ");
+		perror("Adress conversion failure ");
 		exit(EXIT_FAILURE);
 	}
 	// connexion_master_udp.port = atoi(argv[3]); 
